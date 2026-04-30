@@ -3,9 +3,13 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
+repositories {
+    maven("https://maven.hytale.com/release")
+}
+
 dependencies {
     implementation(project(":common"))
-    compileOnly(files("libs/HytaleServer.jar"))
+    compileOnly(libs.hytale.server)
 }
 
 

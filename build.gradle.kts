@@ -7,3 +7,13 @@ allprojects {
     }
 }
 
+subprojects {
+    plugins.withId("java") {
+        configure<JavaPluginExtension> {
+            toolchain {
+                languageVersion = JavaLanguageVersion.of(25)
+            }
+        }
+    }
+}
+

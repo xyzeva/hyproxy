@@ -1,0 +1,10 @@
+{
+  "id": "test-plugin",
+  "name": "Test Plugin",
+  "version": "1.0.0",
+  "mainClass": "ac.eva.hyproxy.examples.ExamplePlugin",
+  "description": "Test HyProxy plugin",
+  "authors": [
+    "oskarscot"
+  ]
+}
