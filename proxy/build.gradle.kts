@@ -1,5 +1,5 @@
 plugins {
-    id("java")
+    `java-library`
     alias(libs.plugins.shadow)
 }
 
@@ -12,7 +12,7 @@ dependencies {
     implementation(libs.bundles.netty)
     implementation(libs.bundles.log4j)
     implementation(libs.bundles.unirest)
-    implementation(libs.bundles.cloud)
+    api(libs.bundles.cloud)
 
     implementation(libs.terminalconsoleappender)
     implementation(libs.nightconfig.toml)

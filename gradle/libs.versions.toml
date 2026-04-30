@@ -12,6 +12,7 @@ jose-jwt = "10.6"
 tink = "1.20.0"
 guava = "33.5.0-jre"
 cloud = "2.0.0"
+hytale = "2026.03.26-89796e57b"
 
 [plugins]
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
@@ -48,6 +49,7 @@ nightconfig-toml = { group = "com.electronwill.night-config", name = "toml", ver
 jose-jwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version.ref = "jose-jwt" }
 tink = { group = "com.google.crypto.tink", name = "tink", version.ref = "tink" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+hytale-server = { group = "com.hypixel.hytale", name = "Server", version.ref = "hytale" }
 
 [bundles]
 netty = ["netty-codec", "netty-handler", "netty-transport-native-epoll", "netty-transport-native-kqueue", "netty-codec-classes-quic"]
