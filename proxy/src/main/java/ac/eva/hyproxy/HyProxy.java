@@ -49,7 +49,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Log4j2
-public class HyProxy {
+public final class HyProxy {
+    public static final HyProxy INSTANCE = new HyProxy();
     public static final AttributeKey<X509Certificate> CLIENT_CERTIFICATE_ATTR = AttributeKey.valueOf("CLIENT_CERTIFICATE");
     public static final AttributeKey<HytaleConnection> HYTALE_CONNECTION_ATTR = AttributeKey.newInstance("HYTALE_CONNECTION");
 
@@ -90,7 +91,7 @@ public class HyProxy {
 
     private final List<PlayerPermissionProvider> playerPermissionProviders = new ArrayList<>();
 
-    public HyProxy() {
+    private HyProxy() {
         try {
             this.certificate = new SelfSignedCertificate("localhost");
 
