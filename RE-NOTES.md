@@ -23,6 +23,27 @@
 - Cloned into `services/repositories/hyproxy`; working branch:
   `alexandresequeira/mhg-1132-update-protocol` (HEAD `2097555`).
 
+## Build environment
+
+The local host has no JDK (only JRE 21, no `javac`); the proxy needs JDK 25. Build inside a
+container instead of changing the host. **Recipe used for all `./gradlew` builds in this ticket:**
+
+```bash
+cd services/repositories/hyproxy
+docker run --rm -v "$PWD":/work -w /work \
+  -v hyproxy-gradle-cache:/root/.gradle \
+  eclipse-temurin:25-jdk bash -lc 'sh ./gradlew --no-daemon <task>'
+```
+
+(`gradlew` may have lost its +x bit in git; invoke it with `sh ./gradlew`. Build outputs under
+`build/` end up root-owned because the container runs as root — they are gitignored, so this is
+cosmetic; `chown` if a host tool needs to read them.)
+
+**Baseline build verified:** `:proxy:build -x test` → BUILD SUCCESSFUL. The shadow jar
+`proxy/build/libs/hyproxy-1.3.jar` is 61,198,355 B vs the deployed
+`hytale-proxy/server.jar` 61,198,368 B — a ~13-byte (manifest/timestamp) difference, confirming
+the fork base reproduces the deployed engine.
+
 ## Packet IDs (current vs hyproxy)
 
 ## Connect layout
