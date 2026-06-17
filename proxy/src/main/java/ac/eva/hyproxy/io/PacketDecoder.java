@@ -53,6 +53,12 @@ public class PacketDecoder extends ByteToMessageDecoder {
         try {
             Packet packet = packetInfo.deserializeFunction().apply(payload);
             out.add(packet);
+        } catch (Exception e) {
+            // A stale/unsupported packet layout must not kill the connection. The proxy only needs
+            // to *decode* handshake packets; everything else can be relayed opaquely. Forward the
+            // raw frame (same path as an unregistered packet) instead of throwing.
+            log.warn("failed to decode packet id {} ({}); forwarding raw frame", packetId, e.toString());
+            out.add(in.copy(originalReaderIndex, 8 + payloadLength));
         } finally {
             payload.release();
         }

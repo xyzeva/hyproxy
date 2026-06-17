@@ -9,6 +9,8 @@ import ac.eva.hyproxy.io.HytaleConnection;
 import ac.eva.hyproxy.io.HytalePacketHandler;
 import ac.eva.hyproxy.io.packet.impl.auth.Connect;
 import ac.eva.hyproxy.io.packet.impl.auth.ConnectAccept;
+import ac.eva.hyproxy.io.packet.impl.auth.InsecurePlayerOptions;
+import ac.eva.hyproxy.io.packet.impl.auth.RequestInsecurePlayerOptions;
 import ac.eva.hyproxy.player.HyProxyPlayer;
 import ac.eva.hyproxy.util.NettyUtil;
 
@@ -41,6 +43,16 @@ public class OutboundInitialPacketHandler implements HytalePacketHandler {
                 ), config.getProxySecret()),
                 config.getPublicIp()
         ));
+    }
+
+    @Override
+    public boolean handle(RequestInsecurePlayerOptions request) {
+        // Insecure-mode backend asks for the player's identity (no longer carried in Connect). Send
+        // it on the player's behalf; the hyproxy-backend mod authorizes the connection via the
+        // signed referral we already included in Connect.
+        HyProxyPlayer player = connection.ensurePlayer();
+        connection.send(new InsecurePlayerOptions(player.getProfileId(), player.getUsername()));
+        return true;
     }
 
     @Override

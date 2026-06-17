@@ -27,6 +27,8 @@ public class PacketRegistry {
         register(new PacketInfo(13, ServerAuthToken.class, ServerAuthToken::deserialize));
         register(new PacketInfo(14, ConnectAccept.class, ConnectAccept::deserialize));
         register(new PacketInfo(18, ClientReferral.class, ClientReferral::deserialize));
+        register(new PacketInfo(363, InsecurePlayerOptions.class, InsecurePlayerOptions::deserialize));
+        register(new PacketInfo(364, RequestInsecurePlayerOptions.class, RequestInsecurePlayerOptions::deserialize));
         register(new PacketInfo(210, ServerMessage.class, ServerMessage::deserialize));
         register(new PacketInfo(211, ChatMessage.class, ChatMessage::deserialize));
         register(new PacketInfo(223, ServerInfo.class, ServerInfo::deserialize));
