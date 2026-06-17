@@ -30,6 +30,7 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
         // A malformed/unsupported clientType byte decodes to null (ClientType.getById is
         // out-of-range-safe). Reject cleanly instead of NPEing downstream.
         if (connect.getClientType() == null) {
+            log.warn("rejecting Connect: invalid client type");
             connection.disconnect("Invalid client type");
             return true;
         }
@@ -39,27 +40,27 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
         // means we cannot identify the player.
         String identityToken = connect.getIdentityToken();
         if (identityToken == null) {
+            log.warn("rejecting Connect: no identity token (offline mode not supported)");
             connection.disconnect("This proxy only supports online mode players!");
             return true;
         }
 
         JWTVerifier.IdentityTokenClaims claims = connection.getProxy().getJwtVerifier().validateIdentityToken(identityToken);
         if (claims == null) {
+            log.warn("rejecting Connect: identity token failed validation (validateIdentityToken returned null)");
             connection.disconnect("Invalid or expired identity token");
             return true;
         }
 
         UUID profileId = claims.getSubjectAsUUID();
         if (profileId == null) {
+            log.warn("rejecting Connect: identity token missing/malformed subject");
             connection.disconnect("Invalid identity token: missing or malformed subject");
             return true;
         }
-
-        String username = claims.username();
-        if (username == null || username.isEmpty()) {
-            connection.disconnect("Invalid identity token: missing username");
-            return true;
-        }
+        // The username is NOT in the Connect packet nor the identity token; it arrives in the
+        // access token (AuthToken), where it is set on the player. Proxy registration is therefore
+        // deferred until then (see InboundAuthPacketHandler.onAuthenticated).
 
         if (connection.getProxy().getPlayerByProfileId(profileId) != null) {
             connection.disconnect("You are already connected to this proxy!");
@@ -72,7 +73,6 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
         player.setProtocolBuildNumber(connect.getProtocolBuildNumber());
         player.setClientVersion(connect.getClientVersion());
         player.setProfileId(profileId);
-        player.setUsername(username);
         player.setIdentityToken(identityToken);
         player.setLanguage(connect.getLanguage());
         player.setClientType(connect.getClientType());
@@ -119,8 +119,6 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
         }
 
         connection.setPlayer(player);
-
-        connection.getProxy().registerPlayer(player);
 
         log.info("authenticating player {}", this.connection.getIdentifier());
         connection.setPacketHandler(new InboundAuthPacketHandler(this.connection));

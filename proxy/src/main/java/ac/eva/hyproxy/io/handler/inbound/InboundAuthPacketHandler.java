@@ -103,10 +103,9 @@ public class InboundAuthPacketHandler implements HytalePacketHandler {
             return true;
         }
 
-        if (!tokenUsername.equals(player.getUsername())) {
-            connection.disconnect("Invalid token claims: username mismatch");
-            return true;
-        }
+        // The access token is the source of truth for the username — it is absent from both the
+        // Connect packet and the identity token, so set it on the player here.
+        player.setUsername(tokenUsername);
 
         String serverAuthGrant = authToken.getServerAuthorizationGrant();
 
@@ -145,6 +144,10 @@ public class InboundAuthPacketHandler implements HytalePacketHandler {
             connection.disconnect("You are already connected to this proxy!");
             return;
         }
+
+        // Register now that the username is known (set from the access token in handle(AuthToken)).
+        // Registration is deferred from Connect handling because the username is unavailable there.
+        connection.getProxy().registerPlayer(player);
 
         PlayerAuthSuccessEvent event = connection.getProxy().getEventBus().fire(new PlayerAuthSuccessEvent(
                 player,
