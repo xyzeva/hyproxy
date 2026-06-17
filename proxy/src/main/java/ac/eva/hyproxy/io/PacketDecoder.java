@@ -36,6 +36,13 @@ public class PacketDecoder extends ByteToMessageDecoder {
             return;
         }
 
+        if (Boolean.getBoolean("hyproxy.debugBytes")) {
+            int frameLength = 8 + payloadLength;
+            log.info("INBOUND frame ({}B):\n{}", frameLength,
+                    io.netty.buffer.ByteBufUtil.prettyHexDump(in, originalReaderIndex,
+                            Math.min(frameLength, 256)));
+        }
+
         if (packetInfo == null) {
             out.add(in.copy(originalReaderIndex, 8 + payloadLength));
             in.skipBytes(payloadLength);

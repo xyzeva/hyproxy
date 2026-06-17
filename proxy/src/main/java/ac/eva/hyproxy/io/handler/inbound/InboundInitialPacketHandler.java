@@ -1,5 +1,6 @@
 package ac.eva.hyproxy.io.handler.inbound;
 
+import ac.eva.hyproxy.auth.JWTVerifier;
 import ac.eva.hyproxy.io.packet.impl.ClientDisconnect;
 import io.netty.buffer.Unpooled;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import ac.eva.hyproxy.io.packet.impl.auth.Connect;
 import ac.eva.hyproxy.player.HyProxyPlayer;
 
 import java.util.Locale;
+import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,7 +23,43 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
 
     @Override
     public boolean handle(Connect connect) {
-        if (connection.getProxy().getPlayerByProfileId(connect.getUuid()) != null) {
+        // Protocol mismatch gate. The current Hytale 0.5.5 client/server validate the CRC; a
+        // mismatch means the client is outdated relative to this proxy's protocol. Single,
+        // clearly-labelled check so it can be disabled trivially if it ever rejects a valid client.
+        if (connect.getProtocolCrc() != Connect.CURRENT_PROTOCOL_CRC) {
+            connection.disconnect("Client outdated: protocol mismatch (expected CRC 0x"
+                    + Integer.toHexString(Connect.CURRENT_PROTOCOL_CRC) + ")");
+            return true;
+        }
+
+        // The current Connect packet no longer carries uuid/username on the wire. We source the
+        // player's identity from the identity-token JWT instead. Online mode is required: no token
+        // means we cannot identify the player.
+        String identityToken = connect.getIdentityToken();
+        if (identityToken == null) {
+            connection.disconnect("This proxy only supports online mode players!");
+            return true;
+        }
+
+        JWTVerifier.IdentityTokenClaims claims = connection.getProxy().getJwtVerifier().validateIdentityToken(identityToken);
+        if (claims == null) {
+            connection.disconnect("Invalid or expired identity token");
+            return true;
+        }
+
+        UUID profileId = claims.getSubjectAsUUID();
+        if (profileId == null) {
+            connection.disconnect("Invalid identity token: missing or malformed subject");
+            return true;
+        }
+
+        String username = claims.username();
+        if (username == null || username.isEmpty()) {
+            connection.disconnect("Invalid identity token: missing username");
+            return true;
+        }
+
+        if (connection.getProxy().getPlayerByProfileId(profileId) != null) {
             connection.disconnect("You are already connected to this proxy!");
             return true;
         }
@@ -31,9 +69,9 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
         player.setProtocolCrc(connect.getProtocolCrc());
         player.setProtocolBuildNumber(connect.getProtocolBuildNumber());
         player.setClientVersion(connect.getClientVersion());
-        player.setProfileId(connect.getUuid());
-        player.setUsername(connect.getUsername());
-        player.setIdentityToken(connect.getIdentityToken());
+        player.setProfileId(profileId);
+        player.setUsername(username);
+        player.setIdentityToken(identityToken);
         player.setLanguage(connect.getLanguage());
         player.setClientType(connect.getClientType());
 
@@ -41,7 +79,7 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
         if (referralData != null) {
             SecretMessageUtil.BackendReferralMessage referralMessage = SecretMessageUtil.validateAndDecodeReferralData(
                     Unpooled.copiedBuffer(referralData),
-                    connect.getUuid(),
+                    profileId,
                     connection.getProxy().getConfiguration().getProxySecret()
             );
 

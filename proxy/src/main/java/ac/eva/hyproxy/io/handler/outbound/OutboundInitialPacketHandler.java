@@ -30,10 +30,8 @@ public class OutboundInitialPacketHandler implements HytalePacketHandler {
                 player.getProtocolBuildNumber(),
                 player.getClientVersion(),
                 player.getClientType(),
-                player.getProfileId(),
-                player.getLanguage(),
                 null,
-                player.getUsername(),
+                player.getLanguage(),
                 SecretMessageUtil.generatePlayerInfoReferral(new SecretMessageUtil.BackendPlayerInfoMessage(
                         player.getProfileId(),
                         player.getUsername(),
