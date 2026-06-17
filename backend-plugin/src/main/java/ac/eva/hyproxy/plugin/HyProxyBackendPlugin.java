@@ -1,6 +1,7 @@
 package ac.eva.hyproxy.plugin;
 
 import com.hypixel.hytale.event.EventPriority;
+import com.hypixel.hytale.protocol.io.ChannelConnection;
 import com.hypixel.hytale.protocol.packets.auth.AuthGrant;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
@@ -95,10 +96,18 @@ public class HyProxyBackendPlugin extends JavaPlugin {
     }
 
     public void sendProxyMessage(ProxyCommunicationMessage message) {
-        this.sendProxyMessage(Universe.get().getPlayers().getFirst(), message);
+        Universe.get().getPlayers().stream().findFirst()
+                .ifPresent(playerRef -> this.sendProxyMessage(playerRef, message));
     }
     public void sendProxyMessage(PlayerRef playerRef, ProxyCommunicationMessage message) {
         this.sendProxyMessage(playerRef.getPacketHandler().getChannel(), message);
+    }
+
+    public void sendProxyMessage(ChannelConnection channel, ProxyCommunicationMessage message) {
+        channel.writeAndFlush(new AuthGrant(
+                null,
+                ProxyCommunicationUtil.serializeMessage(message)
+        ));
     }
 
     public void sendProxyMessage(Channel channel, ProxyCommunicationMessage message) {
