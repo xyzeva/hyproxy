@@ -32,6 +32,13 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
             return true;
         }
 
+        // A malformed/unsupported clientType byte decodes to null (ClientType.getById is
+        // out-of-range-safe). Reject cleanly instead of NPEing downstream.
+        if (connect.getClientType() == null) {
+            connection.disconnect("Invalid client type");
+            return true;
+        }
+
         // The current Connect packet no longer carries uuid/username on the wire. We source the
         // player's identity from the identity-token JWT instead. Online mode is required: no token
         // means we cannot identify the player.

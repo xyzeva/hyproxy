@@ -126,7 +126,12 @@ public class Connect implements Packet {
         buf.writeByte(nullBits);
         buf.writeIntLE(this.protocolCrc);
         buf.writeIntLE(this.protocolBuildNumber);
-        buf.writeBytes(this.clientVersion.getBytes(StandardCharsets.UTF_8));
+        // clientVersion is a fixed 20-byte ASCII field; pad/truncate to exactly 20 bytes so the
+        // fixed block stays aligned (must match deserialize's US_ASCII 20-byte read).
+        byte[] clientVersionBytes = new byte[20];
+        byte[] clientVersionSrc = this.clientVersion.getBytes(StandardCharsets.US_ASCII);
+        System.arraycopy(clientVersionSrc, 0, clientVersionBytes, 0, Math.min(clientVersionSrc.length, 20));
+        buf.writeBytes(clientVersionBytes);
         buf.writeByte(this.clientType.getId());
 
         int identityTokenOffsetSlot = buf.writerIndex();
@@ -145,8 +150,10 @@ public class Connect implements Packet {
             ProtocolUtil.writeVarString(buf, this.identityToken);
         }
 
+        // language is always present on the wire (no null bit); write empty rather than risk an
+        // NPE in writeVarString if a Connect is ever constructed without one.
         buf.setIntLE(languageOffsetSlot, buf.writerIndex() - varsOffset);
-        ProtocolUtil.writeVarString(buf, this.language);
+        ProtocolUtil.writeVarString(buf, this.language != null ? this.language : "");
 
         if (this.referralData != null) {
             buf.setIntLE(referralDataOffsetSlot, buf.writerIndex() - varsOffset);

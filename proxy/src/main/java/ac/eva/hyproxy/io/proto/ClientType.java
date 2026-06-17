@@ -10,6 +10,10 @@ public enum ClientType {
     }
 
     public static ClientType getById(byte id) {
-        return ClientType.values()[id];
+        ClientType[] values = ClientType.values();
+        if (id < 0 || id >= values.length) {
+            return null;
+        }
+        return values[id];
     }
 }
