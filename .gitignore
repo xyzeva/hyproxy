@@ -39,3 +39,5 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+# Local-only licensed Hytale server build (RE + backend compile)
+backend-plugin/libs/HytaleServer.jar
