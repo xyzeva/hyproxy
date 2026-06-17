@@ -23,14 +23,9 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
 
     @Override
     public boolean handle(Connect connect) {
-        // Protocol mismatch gate. The current Hytale 0.5.5 client/server validate the CRC; a
-        // mismatch means the client is outdated relative to this proxy's protocol. Single,
-        // clearly-labelled check so it can be disabled trivially if it ever rejects a valid client.
-        if (connect.getProtocolCrc() != Connect.CURRENT_PROTOCOL_CRC) {
-            connection.disconnect("Client outdated: protocol mismatch (expected CRC 0x"
-                    + Integer.toHexString(Connect.CURRENT_PROTOCOL_CRC) + ")");
-            return true;
-        }
+        // Note: we intentionally do NOT gate on protocolCrc here. The CRC varies between Hytale
+        // client builds and the backend server validates it authoritatively; the proxy just
+        // decodes and forwards (player.protocolCrc is passed through to the backend Connect).
 
         // A malformed/unsupported clientType byte decodes to null (ClientType.getById is
         // out-of-range-safe). Reject cleanly instead of NPEing downstream.

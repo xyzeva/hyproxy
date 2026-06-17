@@ -19,12 +19,6 @@ import java.nio.charset.StandardCharsets;
 @RequiredArgsConstructor
 @ToString
 public class Connect implements Packet {
-    /**
-     * The protocol CRC the current Hytale 0.5.5 client/server validate against.
-     * The server rejects any Connect whose {@code protocolCrc} differs from this value.
-     */
-    public static final int CURRENT_PROTOCOL_CRC = 0x4E7F3D14;
-
     private final int protocolCrc;
     private final int protocolBuildNumber;
     private final String clientVersion;
