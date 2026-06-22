@@ -56,14 +56,12 @@ public class HyProxyBackendPlugin extends JavaPlugin {
         try {
             ByteBuf buf = Unpooled.copiedBuffer(data);
 
-            byte[] secret = getProxySecret();
-
             SecretMessageUtil.BackendPlayerInfoMessage message = SecretMessageUtil.validateAndDecodePlayerInfoReferral(
                     buf,
                     event.getUuid(),
                     event.getUsername(),
                     getBackendName(),
-                    secret
+                    getProxySecret()
             );
 
             if (message == null) {
@@ -105,23 +103,21 @@ public class HyProxyBackendPlugin extends JavaPlugin {
 
         return proxySecret;
     }
+    
+    private String getBackendName() {
+        return System.getenv("HYPROXY_BACKEND") != null ? System.getenv("HYPROXY_BACKEND") : config.get().getBackendName();
+    }
 
     public void sendProxyMessage(ProxyCommunicationMessage message) {
-        Universe.get().getPlayers().stream().findFirst()
-                .ifPresent(playerRef -> this.sendProxyMessage(playerRef, message));
+        final PlayerRef player = Universe.get().getPlayers().iterator().next();
+        this.sendProxyMessage(player, message);
     }
+    
     public void sendProxyMessage(PlayerRef playerRef, ProxyCommunicationMessage message) {
         this.sendProxyMessage(playerRef.getPacketHandler().getChannel(), message);
     }
 
     public void sendProxyMessage(ChannelConnection channel, ProxyCommunicationMessage message) {
-        channel.writeAndFlush(new AuthGrant(
-                null,
-                ProxyCommunicationUtil.serializeMessage(message)
-        ));
-    }
-
-    public void sendProxyMessage(Channel channel, ProxyCommunicationMessage message) {
         channel.writeAndFlush(new AuthGrant(
                 null,
                 ProxyCommunicationUtil.serializeMessage(message)
