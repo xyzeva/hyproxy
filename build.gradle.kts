@@ -4,6 +4,7 @@ allprojects {
 
     repositories {
         mavenCentral()
+        maven("https://maven.hytale.com/release")
     }
 }
 
