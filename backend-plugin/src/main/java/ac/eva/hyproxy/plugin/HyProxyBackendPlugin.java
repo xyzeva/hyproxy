@@ -1,6 +1,7 @@
 package ac.eva.hyproxy.plugin;
 
 import com.hypixel.hytale.event.EventPriority;
+import com.hypixel.hytale.protocol.io.ChannelConnection;
 import com.hypixel.hytale.protocol.packets.auth.AuthGrant;
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
@@ -55,14 +56,12 @@ public class HyProxyBackendPlugin extends JavaPlugin {
         try {
             ByteBuf buf = Unpooled.copiedBuffer(data);
 
-            byte[] secret = getProxySecret();
-
             SecretMessageUtil.BackendPlayerInfoMessage message = SecretMessageUtil.validateAndDecodePlayerInfoReferral(
                     buf,
                     event.getUuid(),
                     event.getUsername(),
-                    this.config.get().getBackendName(),
-                    secret
+                    getBackendName(),
+                    getProxySecret()
             );
 
             if (message == null) {
@@ -93,15 +92,21 @@ public class HyProxyBackendPlugin extends JavaPlugin {
 
         return proxySecret;
     }
+    
+    private String getBackendName() {
+        return System.getenv("HYPROXY_BACKEND") != null ? System.getenv("HYPROXY_BACKEND") : config.get().getBackendName();
+    }
 
     public void sendProxyMessage(ProxyCommunicationMessage message) {
-        this.sendProxyMessage(Universe.get().getPlayers().getFirst(), message);
+        final PlayerRef player = Universe.get().getPlayers().iterator().next();
+        this.sendProxyMessage(player, message);
     }
+    
     public void sendProxyMessage(PlayerRef playerRef, ProxyCommunicationMessage message) {
         this.sendProxyMessage(playerRef.getPacketHandler().getChannel(), message);
     }
 
-    public void sendProxyMessage(Channel channel, ProxyCommunicationMessage message) {
+    public void sendProxyMessage(ChannelConnection channel, ProxyCommunicationMessage message) {
         channel.writeAndFlush(new AuthGrant(
                 null,
                 ProxyCommunicationUtil.serializeMessage(message)

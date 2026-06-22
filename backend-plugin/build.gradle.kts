@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     implementation(project(":common"))
-    compileOnly(files("libs/HytaleServer.jar"))
+    compileOnly(libs.hytale)
 }
 
 
@@ -16,4 +16,10 @@ tasks.shadowJar {
 
 tasks.build {
     dependsOn(tasks.shadowJar)
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
 }
