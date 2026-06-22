@@ -4,6 +4,7 @@ import ac.eva.hyproxy.common.util.ProtocolUtil;
 import ac.eva.hyproxy.io.packet.Packet;
 import ac.eva.hyproxy.io.packet.PacketRegistry;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +37,10 @@ public class PacketDecoder extends ByteToMessageDecoder {
             return;
         }
 
-        if (Boolean.getBoolean("hyproxy.debugBytes")) {
+        if (System.getProperty("hyproxy.debugBytes").equals("true")) {
             int frameLength = 8 + payloadLength;
             log.info("INBOUND frame ({}B):\n{}", frameLength,
-                    io.netty.buffer.ByteBufUtil.prettyHexDump(in, originalReaderIndex,
+                    ByteBufUtil.prettyHexDump(in, originalReaderIndex,
                             Math.min(frameLength, 256)));
         }
 
@@ -54,9 +55,6 @@ public class PacketDecoder extends ByteToMessageDecoder {
             Packet packet = packetInfo.deserializeFunction().apply(payload);
             out.add(packet);
         } catch (Exception e) {
-            // A stale/unsupported packet layout must not kill the connection. The proxy only needs
-            // to *decode* handshake packets; everything else can be relayed opaquely. Forward the
-            // raw frame (same path as an unregistered packet) instead of throwing.
             log.warn("failed to decode packet id {} ({}); forwarding raw frame", packetId, e.toString());
             out.add(in.copy(originalReaderIndex, 8 + payloadLength));
         } finally {

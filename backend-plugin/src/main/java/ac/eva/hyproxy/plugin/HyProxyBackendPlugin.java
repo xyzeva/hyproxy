@@ -76,18 +76,7 @@ public class HyProxyBackendPlugin extends JavaPlugin {
             event.setReason(Message.raw("internal error while verifying player information"));
         }
     }
-
-    /**
-     * The backend id the proxy signs referrals with is this server's id. The proxy uses
-     * {@code backend.getInfo().id()} (the id registered with the Hytale API), which in our
-     * deployment is the {@code SERVER_ID} env (the pod name). Prefer that env over the config
-     * default ("main") so a backend doesn't need a hand-written config.json per deployment.
-     */
-    private String getBackendName() {
-        String serverId = System.getenv("SERVER_ID");
-        return serverId != null && !serverId.isEmpty() ? serverId : config.get().getBackendName();
-    }
-
+    
     private byte[] getProxySecret() {
         byte[] proxySecret = System.getenv("HYPROXY_SECRET") != null ? System.getenv("HYPROXY_SECRET").getBytes(StandardCharsets.UTF_8) : null;
 

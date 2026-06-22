@@ -103,10 +103,7 @@ public class InboundAuthPacketHandler implements HytalePacketHandler {
             return true;
         }
 
-        // The access token is the source of truth for the username — it is absent from both the
-        // Connect packet and the identity token, so set it on the player here.
         player.setUsername(tokenUsername);
-
         String serverAuthGrant = authToken.getServerAuthorizationGrant();
 
         if (serverAuthGrant == null || serverAuthGrant.isEmpty()) {
@@ -145,10 +142,7 @@ public class InboundAuthPacketHandler implements HytalePacketHandler {
             return;
         }
 
-        // Register now that the username is known (set from the access token in handle(AuthToken)).
-        // Registration is deferred from Connect handling because the username is unavailable there.
         connection.getProxy().registerPlayer(player);
-
         PlayerAuthSuccessEvent event = connection.getProxy().getEventBus().fire(new PlayerAuthSuccessEvent(
                 player,
                 false

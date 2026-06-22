@@ -27,7 +27,6 @@ public class InsecurePlayerOptions implements Packet {
     private final String username;
 
     public static InsecurePlayerOptions deserialize(ByteBuf buf) {
-        // The proxy only ever sends this packet; it does not receive it.
         throw new UnsupportedOperationException();
     }
 

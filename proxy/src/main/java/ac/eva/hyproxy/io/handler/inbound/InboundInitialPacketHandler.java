@@ -35,9 +35,6 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
             return true;
         }
 
-        // The current Connect packet no longer carries uuid/username on the wire. We source the
-        // player's identity from the identity-token JWT instead. Online mode is required: no token
-        // means we cannot identify the player.
         String identityToken = connect.getIdentityToken();
         if (identityToken == null) {
             log.warn("rejecting Connect: no identity token (offline mode not supported)");
@@ -58,10 +55,7 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
             connection.disconnect("Invalid identity token: missing or malformed subject");
             return true;
         }
-        // The username is NOT in the Connect packet nor the identity token; it arrives in the
-        // access token (AuthToken), where it is set on the player. Proxy registration is therefore
-        // deferred until then (see InboundAuthPacketHandler.onAuthenticated).
-
+        
         if (connection.getProxy().getPlayerByProfileId(profileId) != null) {
             connection.disconnect("You are already connected to this proxy!");
             return true;

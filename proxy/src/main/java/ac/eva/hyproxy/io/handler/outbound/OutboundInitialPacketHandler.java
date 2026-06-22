@@ -47,9 +47,6 @@ public class OutboundInitialPacketHandler implements HytalePacketHandler {
 
     @Override
     public boolean handle(RequestInsecurePlayerOptions request) {
-        // Insecure-mode backend asks for the player's identity (no longer carried in Connect). Send
-        // it on the player's behalf; the hyproxy-backend mod authorizes the connection via the
-        // signed referral we already included in Connect.
         HyProxyPlayer player = connection.ensurePlayer();
         connection.send(new InsecurePlayerOptions(player.getProfileId(), player.getUsername()));
         return true;

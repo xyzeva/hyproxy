@@ -438,11 +438,10 @@ public class HyProxy {
      * internal: please don't call this!
      */
     public void unregisterPlayer(HyProxyPlayer player) {
-        // Idempotent: a connection can drop mid-auth before the player is registered, because
-        // registration is deferred until the username is known from the access token.
         if (this.getPlayerByProfileId(player.getProfileId(), true) == null) {
             return;
         }
+        
         this.playersByProfileId.remove(player.getProfileId());
         if (player.getUsername() != null) {
             this.playersByUsername.remove(player.getUsername().toLowerCase(Locale.ROOT));
