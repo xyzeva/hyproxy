@@ -13,6 +13,7 @@ import ac.eva.hyproxy.io.packet.impl.game.ServerMessage;
 import ac.eva.hyproxy.io.proto.ClientType;
 import ac.eva.hyproxy.io.proto.DisconnectType;
 import ac.eva.hyproxy.io.proto.NetworkChannel;
+import ac.eva.hyproxy.io.proto.PlayerSkin;
 import ac.eva.hyproxy.message.Message;
 import ac.eva.hyproxy.player.permission.PlayerPermissionProvider;
 import com.google.common.collect.ImmutableSet;
@@ -55,6 +56,8 @@ public class HyProxyPlayer implements CommandSender {
     private ClientType clientType;
     @Setter
     private @Nullable HyProxyBackend referredBackend;
+    @Setter
+    private @Nullable PlayerSkin skin;
 
     @Setter
     private boolean authenticated = false;

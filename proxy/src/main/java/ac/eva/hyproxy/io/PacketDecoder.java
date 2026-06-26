@@ -13,6 +13,7 @@ import java.util.List;
 
 @Slf4j
 public class PacketDecoder extends ByteToMessageDecoder {
+    private static final boolean DEBUG_PACKETS = Boolean.getBoolean("hyproxy.debugBytes");
     private static final int MAX_PAYLOAD_LENGTH = 1677721600;
 
     @Override
@@ -37,11 +38,13 @@ public class PacketDecoder extends ByteToMessageDecoder {
             return;
         }
 
-        if (System.getProperty("hyproxy.debugBytes").equals("true")) {
-            int frameLength = 8 + payloadLength;
-            log.info("INBOUND frame ({}B):\n{}", frameLength,
-                    ByteBufUtil.prettyHexDump(in, originalReaderIndex,
-                            Math.min(frameLength, 256)));
+        if (DEBUG_PACKETS) {
+            final int frameLength = 8 + payloadLength;
+            log.info(
+                "INBOUND frame ({}B):\n{}",
+                frameLength,
+                ByteBufUtil.prettyHexDump(in, originalReaderIndex, Math.min(frameLength, 256))
+            );
         }
 
         if (packetInfo == null) {

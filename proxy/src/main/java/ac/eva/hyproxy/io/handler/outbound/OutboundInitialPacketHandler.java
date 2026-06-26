@@ -48,7 +48,7 @@ public class OutboundInitialPacketHandler implements HytalePacketHandler {
     @Override
     public boolean handle(RequestInsecurePlayerOptions request) {
         HyProxyPlayer player = connection.ensurePlayer();
-        connection.send(new InsecurePlayerOptions(player.getProfileId(), player.getUsername()));
+        connection.send(new InsecurePlayerOptions(player.getProfileId(), player.getUsername(), player.getSkin()));
         return true;
     }
 

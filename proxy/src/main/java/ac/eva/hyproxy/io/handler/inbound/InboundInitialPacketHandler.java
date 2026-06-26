@@ -11,6 +11,7 @@ import ac.eva.hyproxy.event.impl.player.PlayerPreAuthConnectEvent;
 import ac.eva.hyproxy.io.HytaleConnection;
 import ac.eva.hyproxy.io.HytalePacketHandler;
 import ac.eva.hyproxy.io.packet.impl.auth.Connect;
+import ac.eva.hyproxy.io.proto.PlayerSkin;
 import ac.eva.hyproxy.player.HyProxyPlayer;
 
 import java.util.Locale;
@@ -70,6 +71,7 @@ public class InboundInitialPacketHandler implements HytalePacketHandler {
         player.setIdentityToken(identityToken);
         player.setLanguage(connect.getLanguage());
         player.setClientType(connect.getClientType());
+        player.setSkin(PlayerSkin.fromJson(claims.skin()));
 
         byte[] referralData = connect.getReferralData();
         if (referralData != null) {
