@@ -13,13 +13,13 @@ public record FormattedMessageImage(
     public static Pair<FormattedMessageImage, Integer> deserialize(ByteBuf buf, int offset) {
         int width = buf.getIntLE(offset);
         int height = buf.getIntLE(offset + 4);
-        Pair<String, Integer> varString = ProtocolUtil.readVarString(buf, offset, 4096);
+        Pair<String, Integer> varString = ProtocolUtil.readVarString(buf, offset + 8, 4096);
 
         return Pair.of(new FormattedMessageImage(
                 varString.left(),
                 width,
                 height
-        ), 4 + 4 + varString.right());
+        ), 8 + varString.right());
     }
 
     public void serialize(ByteBuf buf) {

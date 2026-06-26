@@ -33,12 +33,19 @@ public class FormattedMessage {
     private boolean markupEnabled;
 
     public static FormattedMessage deserialize(ByteBuf buf) {
-        byte nullBits = buf.readByte();
-        MaybeBool bold = MaybeBool.getById(buf.readByte());
-        MaybeBool italic = MaybeBool.getById(buf.readByte());
-        MaybeBool monospace = MaybeBool.getById(buf.readByte());
-        MaybeBool underlined = MaybeBool.getById(buf.readByte());
+        byte nullBits0 = buf.readByte();
+        byte nullBits1 = buf.readByte();
+
+        byte boldByte = buf.readByte();
+        byte italicByte = buf.readByte();
+        byte monospaceByte = buf.readByte();
+        byte underlinedByte = buf.readByte();
         boolean markupEnabled = buf.readByte() != 0;
+
+        MaybeBool bold = (nullBits0 & 0x1) != 0 ? MaybeBool.fromBool(boldByte != 0) : MaybeBool.NULL;
+        MaybeBool italic = (nullBits0 & 0x2) != 0 ? MaybeBool.fromBool(italicByte != 0) : MaybeBool.NULL;
+        MaybeBool monospace = (nullBits0 & 0x4) != 0 ? MaybeBool.fromBool(monospaceByte != 0) : MaybeBool.NULL;
+        MaybeBool underlined = (nullBits0 & 0x8) != 0 ? MaybeBool.fromBool(underlinedByte != 0) : MaybeBool.NULL;
 
         int rawTextOffset = buf.readIntLE();
         int messageIdOffset = buf.readIntLE();
@@ -54,7 +61,7 @@ public class FormattedMessage {
         int readViaOffsets = 0;
 
         String rawText = null;
-        if ((nullBits & 0x1) != 0) {
+        if ((nullBits0 & 0x10) != 0) {
             int offset = varsOffset + rawTextOffset;
             Pair<String, Integer> varString = ProtocolUtil.readVarString(buf, offset, 128);
             rawText = varString.left();
@@ -62,7 +69,7 @@ public class FormattedMessage {
         }
 
         String messageId = null;
-        if ((nullBits & 0x2) != 0) {
+        if ((nullBits0 & 0x20) != 0) {
             int offset = varsOffset + messageIdOffset;
             Pair<String, Integer> varString = ProtocolUtil.readVarString(buf, offset, 128);
             messageId = varString.left();
@@ -70,7 +77,7 @@ public class FormattedMessage {
         }
 
         FormattedMessage[] children = null;
-        if ((nullBits & 0x4) != 0) {
+        if ((nullBits0 & 0x40) != 0) {
             int oldOffset = buf.readerIndex();
 
             int offset = varsOffset + childrenOffset;
@@ -96,7 +103,7 @@ public class FormattedMessage {
         }
 
         Map<String, ParamValue> params = null;
-        if ((nullBits & 0x8) != 0) {
+        if ((nullBits0 & 0x80) != 0) {
             int oldOffset = buf.readerIndex();
             int offset = varsOffset + paramsOffset;
 
@@ -125,7 +132,7 @@ public class FormattedMessage {
 
         Map<String, FormattedMessage> messageParams = null;
 
-        if ((nullBits & 16) != 0) {
+        if ((nullBits1 & 0x1) != 0) {
             int oldOffset = buf.readerIndex();
             int offset = varsOffset + messageParamsOffset;
 
@@ -153,7 +160,7 @@ public class FormattedMessage {
         }
 
         String color = null;
-        if ((nullBits & 32) != 0) {
+        if ((nullBits1 & 0x2) != 0) {
             int offset = varsOffset + colorOffset;
             Pair<String, Integer> varString = ProtocolUtil.readVarString(buf, offset, 32);
             color = varString.left();
@@ -161,7 +168,7 @@ public class FormattedMessage {
         }
 
         String link = null;
-        if ((nullBits & 64) != 0) {
+        if ((nullBits1 & 0x4) != 0) {
             int offset = varsOffset + linksOffset;
             Pair<String, Integer> varString = ProtocolUtil.readVarString(buf, offset, 1024);
             link = varString.left();
@@ -169,7 +176,7 @@ public class FormattedMessage {
         }
 
         FormattedMessageImage image = null;
-        if ((nullBits & 128) != 0) {
+        if ((nullBits1 & 0x8) != 0) {
             int offset = varsOffset + imageOffset;
             Pair<FormattedMessageImage, Integer> pair = FormattedMessageImage.deserialize(buf, offset);
             image = pair.left();
@@ -195,44 +202,63 @@ public class FormattedMessage {
     }
 
     public void serialize(ByteBuf buf) {
-        byte nullBits = 0;
+        byte nullBits0 = 0;
+        byte nullBits1 = 0;
+
+        if (this.bold != MaybeBool.NULL) {
+            nullBits0 = (byte) (nullBits0 | 0x1);
+        }
+
+        if (this.italic != MaybeBool.NULL) {
+            nullBits0 = (byte) (nullBits0 | 0x2);
+        }
+
+        if (this.monospace != MaybeBool.NULL) {
+            nullBits0 = (byte) (nullBits0 | 0x4);
+        }
+
+        if (this.underlined != MaybeBool.NULL) {
+            nullBits0 = (byte) (nullBits0 | 0x8);
+        }
+
         if (this.rawText != null) {
-            nullBits = (byte) (nullBits | 1);
+            nullBits0 = (byte) (nullBits0 | 0x10);
         }
 
         if (this.messageId != null) {
-            nullBits = (byte) (nullBits | 2);
+            nullBits0 = (byte) (nullBits0 | 0x20);
         }
 
         if (this.children != null) {
-            nullBits = (byte) (nullBits | 4);
+            nullBits0 = (byte) (nullBits0 | 0x40);
         }
 
         if (this.params != null) {
-            nullBits = (byte) (nullBits | 8);
+            nullBits0 = (byte) (nullBits0 | 0x80);
         }
 
         if (this.messageParams != null) {
-            nullBits = (byte) (nullBits | 16);
+            nullBits1 = (byte) (nullBits1 | 0x1);
         }
 
         if (this.color != null) {
-            nullBits = (byte) (nullBits | 32);
+            nullBits1 = (byte) (nullBits1 | 0x2);
         }
 
         if (this.link != null) {
-            nullBits = (byte) (nullBits | 64);
+            nullBits1 = (byte) (nullBits1 | 0x4);
         }
 
         if (this.image != null) {
-            nullBits = (byte) (nullBits | 128);
+            nullBits1 = (byte) (nullBits1 | 0x8);
         }
 
-        buf.writeByte(nullBits);
-        buf.writeByte(this.bold.getId());
-        buf.writeByte(this.italic.getId());
-        buf.writeByte(this.monospace.getId());
-        buf.writeByte(this.underlined.getId());
+        buf.writeByte(nullBits0);
+        buf.writeByte(nullBits1);
+        buf.writeByte(this.bold == MaybeBool.TRUE ? 1 : 0);
+        buf.writeByte(this.italic == MaybeBool.TRUE ? 1 : 0);
+        buf.writeByte(this.monospace == MaybeBool.TRUE ? 1 : 0);
+        buf.writeByte(this.underlined == MaybeBool.TRUE ? 1 : 0);
         buf.writeByte(this.markupEnabled ? 1 : 0);
 
         int rawTextOffsetSlot = buf.writerIndex();

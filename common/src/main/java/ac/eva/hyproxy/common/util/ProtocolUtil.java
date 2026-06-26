@@ -43,7 +43,7 @@ public class ProtocolUtil {
             data[i] = buf.getByte(offset + varIntLength + i);
         }
 
-        return Pair.of(new String(data, StandardCharsets.US_ASCII), varIntLength + data.length);
+        return Pair.of(new String(data, StandardCharsets.UTF_8), varIntLength + data.length);
     }
 
     public String readVarString(ByteBuf buf, int maxLength, Charset charset) {

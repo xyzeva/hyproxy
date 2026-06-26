@@ -58,8 +58,7 @@ public class PacketDecoder extends ByteToMessageDecoder {
             Packet packet = packetInfo.deserializeFunction().apply(payload);
             out.add(packet);
         } catch (Exception e) {
-            log.warn("failed to decode packet id {} ({}); forwarding raw frame", packetId, e.toString());
-            out.add(in.copy(originalReaderIndex, 8 + payloadLength));
+            log.warn("failed to decode packet id {} - dropping packet", packetId, e);
         } finally {
             payload.release();
         }
