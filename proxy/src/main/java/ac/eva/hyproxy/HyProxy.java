@@ -439,10 +439,13 @@ public class HyProxy {
      */
     public void unregisterPlayer(HyProxyPlayer player) {
         if (this.getPlayerByProfileId(player.getProfileId(), true) == null) {
-            throw new IllegalArgumentException("player profile id " + player.getProfileId() + " not registered");
+            return;
         }
+        
         this.playersByProfileId.remove(player.getProfileId());
-        this.playersByUsername.remove(player.getUsername().toLowerCase(Locale.ROOT));
+        if (player.getUsername() != null) {
+            this.playersByUsername.remove(player.getUsername().toLowerCase(Locale.ROOT));
+        }
     }
 
     public String getServerCertFingerprint() {

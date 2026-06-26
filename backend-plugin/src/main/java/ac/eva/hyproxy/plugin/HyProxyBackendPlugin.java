@@ -67,6 +67,11 @@ public class HyProxyBackendPlugin extends JavaPlugin {
             if (message == null) {
                 event.setCancelled(true);
                 event.setReason(Message.raw("invalid player info message (is your proxy secret and backend id valid?)"));
+                getLogger().at(Level.WARNING).log(
+                    "failed to parse player info message, likely an invalid secret or backend (secret=<%d bytes>, backend=%s)",
+                    this.getProxySecret().length,
+                    this.getBackendName()
+                );
                 return;
             }
 
@@ -76,7 +81,7 @@ public class HyProxyBackendPlugin extends JavaPlugin {
             event.setReason(Message.raw("internal error while verifying player information"));
         }
     }
-
+    
     private byte[] getProxySecret() {
         byte[] proxySecret = System.getenv("HYPROXY_SECRET") != null ? System.getenv("HYPROXY_SECRET").getBytes(StandardCharsets.UTF_8) : null;
 

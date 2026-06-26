@@ -103,11 +103,7 @@ public class InboundAuthPacketHandler implements HytalePacketHandler {
             return true;
         }
 
-        if (!tokenUsername.equals(player.getUsername())) {
-            connection.disconnect("Invalid token claims: username mismatch");
-            return true;
-        }
-
+        player.setUsername(tokenUsername);
         String serverAuthGrant = authToken.getServerAuthorizationGrant();
 
         if (serverAuthGrant == null || serverAuthGrant.isEmpty()) {
@@ -146,6 +142,7 @@ public class InboundAuthPacketHandler implements HytalePacketHandler {
             return;
         }
 
+        connection.getProxy().registerPlayer(player);
         PlayerAuthSuccessEvent event = connection.getProxy().getEventBus().fire(new PlayerAuthSuccessEvent(
                 player,
                 false

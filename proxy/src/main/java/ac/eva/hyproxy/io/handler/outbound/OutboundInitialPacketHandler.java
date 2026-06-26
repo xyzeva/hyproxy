@@ -9,6 +9,8 @@ import ac.eva.hyproxy.io.HytaleConnection;
 import ac.eva.hyproxy.io.HytalePacketHandler;
 import ac.eva.hyproxy.io.packet.impl.auth.Connect;
 import ac.eva.hyproxy.io.packet.impl.auth.ConnectAccept;
+import ac.eva.hyproxy.io.packet.impl.auth.InsecurePlayerOptions;
+import ac.eva.hyproxy.io.packet.impl.auth.RequestInsecurePlayerOptions;
 import ac.eva.hyproxy.player.HyProxyPlayer;
 import ac.eva.hyproxy.util.NettyUtil;
 
@@ -30,10 +32,8 @@ public class OutboundInitialPacketHandler implements HytalePacketHandler {
                 player.getProtocolBuildNumber(),
                 player.getClientVersion(),
                 player.getClientType(),
-                player.getProfileId(),
-                player.getLanguage(),
                 null,
-                player.getUsername(),
+                player.getLanguage(),
                 SecretMessageUtil.generatePlayerInfoReferral(new SecretMessageUtil.BackendPlayerInfoMessage(
                         player.getProfileId(),
                         player.getUsername(),
@@ -43,6 +43,13 @@ public class OutboundInitialPacketHandler implements HytalePacketHandler {
                 ), config.getProxySecret()),
                 config.getPublicIp()
         ));
+    }
+
+    @Override
+    public boolean handle(RequestInsecurePlayerOptions request) {
+        HyProxyPlayer player = connection.ensurePlayer();
+        connection.send(new InsecurePlayerOptions(player.getProfileId(), player.getUsername(), player.getSkin()));
+        return true;
     }
 
     @Override

@@ -16,6 +16,7 @@ import ac.eva.hyproxy.util.CertificateUtil;
 import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -107,6 +108,12 @@ public class JWTVerifier {
             }
 
             JWTClaimsSet claimsSet = jwt.getJWTClaimsSet();
+
+            // todo: this is stupid, and should be cleaned up
+            Map<String, Object> profile = claimsSet.getJSONObjectClaim("profile");
+            Object skinClaim = profile != null ? profile.get("skin") : null;
+            String skin = skinClaim != null ? skinClaim.toString() : null;
+
             IdentityTokenClaims claims = new IdentityTokenClaims(
                     claimsSet.getIssuer(),
                     claimsSet.getSubject(),
@@ -114,7 +121,8 @@ public class JWTVerifier {
                     claimsSet.getIssueTime() != null ? claimsSet.getIssueTime().toInstant().getEpochSecond() : null,
                     claimsSet.getExpirationTime() != null ? claimsSet.getExpirationTime().toInstant().getEpochSecond() : null,
                     claimsSet.getNotBeforeTime() != null ? claimsSet.getNotBeforeTime().toInstant().getEpochSecond() : null,
-                    claimsSet.getStringClaim("scope")
+                    claimsSet.getStringClaim("scope"),
+                    skin
             );
 
             if (!claims.issuer().equals(HytaleSessionServiceClient.SESSIONS_ISSUER)) {
@@ -176,7 +184,8 @@ public class JWTVerifier {
             @Nullable Long issuedAt,
             @Nullable Long expiresAt,
             @Nullable Long notBefore,
-            @Nullable String scope
+            @Nullable String scope,
+            @Nullable String skin
     ) {
         public @Nullable UUID getSubjectAsUUID() {
             if (this.subject == null) return null;

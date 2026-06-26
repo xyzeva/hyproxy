@@ -38,6 +38,12 @@ public interface HytalePacketHandler {
     default boolean handle(ConnectAccept connectAccept) {
         return false;
     }
+    default boolean handle(RequestInsecurePlayerOptions requestInsecurePlayerOptions) {
+        return false;
+    }
+    default boolean handle(InsecurePlayerOptions insecurePlayerOptions) {
+        return false;
+    }
     default boolean handle(ClientReferral referral) {
         return false;
     }

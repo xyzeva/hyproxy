@@ -166,7 +166,7 @@ public class Message {
     }
 
     public Message monospace(boolean monospace) {
-        this.formatted.setItalic(MaybeBool.fromBool(monospace));
+        this.formatted.setMonospace(MaybeBool.fromBool(monospace));
         return this;
     }
 
